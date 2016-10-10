@@ -163,17 +163,16 @@ void ClusterManagerImpl::postThreadLocalClusterUpdate(const ClusterImplBase& pri
   ConstHostVectorPtr hosts_copy = primary_cluster.rawHosts();
   ConstHostVectorPtr healthy_hosts_copy = primary_cluster.rawHealthyHosts();
   ConstHostVectorPtr local_zone_hosts_copy = primary_cluster.rawLocalZoneHosts();
-  ConstHostVectorPtr local_zone_healthy_hosts_copy = primary_cluster.rawLocalZoneHealthyHosts();
   ConstHostMapPtr healthy_hosts_per_zone_copy = primary_cluster.rawHealthyHostsPerZone();
   ThreadLocal::Instance& tls = tls_;
   uint32_t thead_local_slot = thread_local_slot_;
   tls_.runOnAllThreads(
-      [name, hosts_copy, healthy_hosts_copy, local_zone_hosts_copy, local_zone_healthy_hosts_copy,
-       healthy_hosts_per_zone_copy, hosts_added, hosts_removed, &tls, thead_local_slot]() mutable
+      [name, hosts_copy, healthy_hosts_copy, local_zone_hosts_copy,
+      healthy_hosts_per_zone_copy, hosts_added, hosts_removed, &tls, thead_local_slot]() mutable
       -> void {
         ThreadLocalClusterManagerImpl::updateClusterMembership(
             name, hosts_copy, healthy_hosts_copy, local_zone_hosts_copy,
-            local_zone_healthy_hosts_copy, healthy_hosts_per_zone_copy, hosts_added, hosts_removed,
+            healthy_hosts_per_zone_copy, hosts_added, hosts_removed,
             tls, thead_local_slot);
       });
 }
