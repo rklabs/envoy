@@ -164,14 +164,17 @@ void ClusterManagerImpl::postThreadLocalClusterUpdate(const ClusterImplBase& pri
   ConstHostVectorPtr healthy_hosts_copy = primary_cluster.rawHealthyHosts();
   ConstHostVectorPtr local_zone_hosts_copy = primary_cluster.rawLocalZoneHosts();
   ConstHostVectorPtr local_zone_healthy_hosts_copy = primary_cluster.rawLocalZoneHealthyHosts();
+  ConstHostMapPtr healthy_hosts_per_zone_copy = primary_cluster.rawHealthyHostsPerZone();
   ThreadLocal::Instance& tls = tls_;
   uint32_t thead_local_slot = thread_local_slot_;
   tls_.runOnAllThreads(
       [name, hosts_copy, healthy_hosts_copy, local_zone_hosts_copy, local_zone_healthy_hosts_copy,
-       hosts_added, hosts_removed, &tls, thead_local_slot]() mutable -> void {
+       healthy_hosts_per_zone_copy, hosts_added, hosts_removed, &tls, thead_local_slot]() mutable
+      -> void {
         ThreadLocalClusterManagerImpl::updateClusterMembership(
             name, hosts_copy, healthy_hosts_copy, local_zone_hosts_copy,
-            local_zone_healthy_hosts_copy, hosts_added, hosts_removed, tls, thead_local_slot);
+            local_zone_healthy_hosts_copy, healthy_hosts_per_zone_copy, hosts_added, hosts_removed,
+            tls, thead_local_slot);
       });
 }
 
@@ -261,15 +264,17 @@ void ClusterManagerImpl::ThreadLocalClusterManagerImpl::drainConnPools(
 void ClusterManagerImpl::ThreadLocalClusterManagerImpl::updateClusterMembership(
     const std::string& name, ConstHostVectorPtr hosts, ConstHostVectorPtr healthy_hosts,
     ConstHostVectorPtr local_zone_hosts, ConstHostVectorPtr local_zone_healthy_hosts,
-    const std::vector<HostPtr>& hosts_added, const std::vector<HostPtr>& hosts_removed,
-    ThreadLocal::Instance& tls, uint32_t thead_local_slot) {
+    ConstHostMapPtr healthy_hosts_per_zone, const std::vector<HostPtr>& hosts_added,
+    const std::vector<HostPtr>& hosts_removed, ThreadLocal::Instance& tls,
+    uint32_t thead_local_slot) {
 
   ThreadLocalClusterManagerImpl& config =
       tls.getTyped<ThreadLocalClusterManagerImpl>(thead_local_slot);
 
   ASSERT(config.thread_local_clusters_.find(name) != config.thread_local_clusters_.end());
   config.thread_local_clusters_[name]->host_set_.updateHosts(
-      hosts, healthy_hosts, local_zone_hosts, local_zone_healthy_hosts, hosts_added, hosts_removed);
+      hosts, healthy_hosts, local_zone_hosts, local_zone_healthy_hosts, healthy_hosts_per_zone,
+      hosts_added, hosts_removed);
 }
 
 void ClusterManagerImpl::ThreadLocalClusterManagerImpl::shutdown() {

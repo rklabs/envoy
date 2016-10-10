@@ -96,6 +96,7 @@ private:
                                         ConstHostVectorPtr healthy_hosts,
                                         ConstHostVectorPtr local_zone_hosts,
                                         ConstHostVectorPtr local_zone_healthy_hosts,
+                                        ConstHostMapPtr healthy_hosts_per_zone,
                                         const std::vector<HostPtr>& hosts_added,
                                         const std::vector<HostPtr>& hosts_removed,
                                         ThreadLocal::Instance& tls, uint32_t thead_local_slot);

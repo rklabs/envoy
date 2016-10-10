@@ -87,6 +87,9 @@ private:
 
 typedef std::shared_ptr<std::vector<HostPtr>> HostVectorPtr;
 typedef std::shared_ptr<const std::vector<HostPtr>> ConstHostVectorPtr;
+typedef std::shared_ptr<std::unordered_map<std::string, std::vector<HostPtr>>> HostMapPtr;
+typedef std::shared_ptr<const std::unordered_map<std::string, std::vector<HostPtr>>>
+    ConstHostMapPtr;
 
 /**
  * Base clase for all clusters as well as thread local host sets.
@@ -98,15 +101,15 @@ public:
   ConstHostVectorPtr rawHosts() const { return hosts_; }
   ConstHostVectorPtr rawHealthyHosts() const { return healthy_hosts_; }
   ConstHostVectorPtr rawLocalZoneHosts() const { return local_zone_hosts_; }
-  ConstHostVectorPtr rawLocalZoneHealthyHosts() const { return local_zone_healthy_hosts_; }
+  ConstHostMapPtr rawHealthyHostsPerZone() const { return healthy_hosts_per_zone_; }
   void updateHosts(ConstHostVectorPtr hosts, ConstHostVectorPtr healthy_hosts,
-                   ConstHostVectorPtr local_zone_hosts, ConstHostVectorPtr local_zone_healthy_hosts,
+                   ConstHostVectorPtr local_zone_hosts, ConstHostMapPtr healthy_hosts_per_zone,
                    const std::vector<HostPtr>& hosts_added,
                    const std::vector<HostPtr>& hosts_removed) {
     hosts_ = hosts;
     healthy_hosts_ = healthy_hosts;
     local_zone_hosts_ = local_zone_hosts;
-    local_zone_healthy_hosts_ = local_zone_healthy_hosts;
+    healthy_hosts_per_zone_ = healthy_hosts_per_zone;
     runUpdateCallbacks(hosts_added, hosts_removed);
   }
 
@@ -114,9 +117,10 @@ public:
   const std::vector<HostPtr>& hosts() const override { return *hosts_; }
   const std::vector<HostPtr>& healthyHosts() const override { return *healthy_hosts_; }
   const std::vector<HostPtr>& localZoneHosts() const override { return *local_zone_hosts_; }
-  const std::vector<HostPtr>& localZoneHealthyHosts() const override {
-    return *local_zone_healthy_hosts_;
-  }
+  const std::unordered_map<std::string, std::vector<HostPtr>>&
+  healthyHostsPerZone() const override {
+    return *healthy_hosts_per_zone_;
+  };
   void addMemberUpdateCb(MemberUpdateCb callback) const override;
 
 protected:
@@ -127,7 +131,8 @@ private:
   ConstHostVectorPtr hosts_;
   ConstHostVectorPtr healthy_hosts_;
   ConstHostVectorPtr local_zone_hosts_;
-  ConstHostVectorPtr local_zone_healthy_hosts_;
+  ConstHostMapPtr healthy_hosts_per_zone_;
+
   mutable std::list<MemberUpdateCb> callbacks_;
 };
 
@@ -171,6 +176,7 @@ protected:
                           const std::vector<HostPtr>& hosts_removed) override;
 
   static const ConstHostVectorPtr empty_host_list_;
+  static const ConstHostMapPtr empty_host_map_;
 
   Ssl::ClientContext* ssl_ctx_;
   std::string name_;

@@ -129,7 +129,7 @@ void ClusterImplBase::setHealthChecker(HealthCheckerPtr&& health_checker) {
     // update the host sets on all threads.
     if (changed_state) {
       updateHosts(rawHosts(), createHealthyHostList(*rawHosts()), rawLocalZoneHosts(),
-                  createHealthyHostList(*rawLocalZoneHosts()), {}, {});
+                  rawHealthyHostsPerZone(), {}, {});
     }
   });
 }
@@ -173,7 +173,7 @@ StaticClusterImpl::StaticClusterImpl(const Json::Object& config, Runtime::Loader
     new_hosts->emplace_back(HostPtr{new HostImpl(*this, url, false, 1, "")});
   }
 
-  updateHosts(new_hosts, createHealthyHostList(*new_hosts), empty_host_list_, empty_host_list_, {},
+  updateHosts(new_hosts, createHealthyHostList(*new_hosts), empty_host_list_, empty_host_map_, {},
               {});
 }
 
@@ -280,7 +280,7 @@ void StrictDnsClusterImpl::updateAllHosts(const std::vector<HostPtr>& hosts_adde
     }
   }
 
-  updateHosts(new_hosts, createHealthyHostList(*new_hosts), empty_host_list_, empty_host_list_,
+  updateHosts(new_hosts, createHealthyHostList(*new_hosts), empty_host_list_, empty_host_map_,
               hosts_added, hosts_removed);
 }
 

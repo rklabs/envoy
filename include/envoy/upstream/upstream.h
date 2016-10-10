@@ -123,10 +123,10 @@ public:
   virtual const std::vector<HostPtr>& localZoneHosts() const PURE;
 
   /**
-   * @return all healthy hosts that are in the zone local to this node. See healthyHosts() and
-   *         localZoneHosts() for more information.
+   * @return map of zone to healthy hosts in the given zone.
    */
-  virtual const std::vector<HostPtr>& localZoneHealthyHosts() const PURE;
+  virtual const std::unordered_map<std::string, std::vector<HostPtr>>&
+  healthyHostsPerZone() const PURE;
 };
 
 /**

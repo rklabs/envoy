@@ -73,17 +73,18 @@ void SdsClusterImpl::parseSdsResponse(Http::Message& response) {
   if (updateDynamicHostList(new_hosts, *current_hosts_copy, hosts_added, hosts_removed,
                             health_checker_ != nullptr)) {
     log_debug("sds hosts changed for cluster: {} ({})", name_, hosts().size());
-    HostVectorPtr local_zone_hosts(new std::vector<HostPtr>());
+    HostMapPtr healthy_hosts_per_zone(new std::unordered_map<std::string, std::vector<HostPtr>>());
+
     if (!sds_config_.local_zone_name_.empty()) {
       for (HostPtr host : *current_hosts_copy) {
-        if (host->zone() == sds_config_.local_zone_name_) {
-          local_zone_hosts->push_back(host);
+        if (host->healthy()) {
+          (*healthy_hosts_per_zone)[host->zone()].push_back(host);
         }
       }
     }
 
     updateHosts(current_hosts_copy, createHealthyHostList(*current_hosts_copy), local_zone_hosts,
-                createHealthyHostList(*local_zone_hosts), hosts_added, hosts_removed);
+                healthy_hosts_per_zone, hosts_added, hosts_removed);
 
     if (initialize_callback_ && health_checker_ && pending_health_checks_ == 0) {
       pending_health_checks_ = hosts().size();

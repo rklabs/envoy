@@ -52,7 +52,7 @@ void LogicalDnsCluster::startResolve() {
             HostVectorPtr new_hosts(new std::vector<HostPtr>());
             new_hosts->emplace_back(logical_host_);
             updateHosts(new_hosts, createHealthyHostList(*new_hosts), empty_host_list_,
-                        empty_host_list_, *new_hosts, {});
+                        empty_host_list_, empty_host_map_, *new_hosts, {});
           }
         }
 
